@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lámina de interfaz — Smartphone</title>
+<meta name="description" content="Análisis de las entradas y salidas de un smartphone por canal sonoro, físico y gráfico.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --hormigon:#E4E5E0;
+    --tinta:   #14161A;
+    --gris:    #6B7078;
+    --linea:   rgba(20,22,26,.16);
+
+    /* un color por canal: el mismo código se usa en toda la lámina */
+    --sonido:  #1B34E0;
+    --fisico:  #A8321F;
+    --grafico: #0B6E5A;
+
+    --display:'Archivo', system-ui, sans-serif;
+    --texto:  'Instrument Sans', system-ui, sans-serif;
+    --dato:   'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    background:var(--hormigon);
+    color:var(--tinta);
+    font-family:var(--texto);
+    font-size:16px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .envoltura{
+    max-width:1080px;
+    margin:0 auto;
+    padding:0 28px;
+  }
+
+  .dato{
+    font-family:var(--dato);
+    font-size:12px;
+    letter-spacing:.04em;
+    color:var(--gris);
+  }
+
+  /* ---------- cabecera ---------- */
+  .barra{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:16px;
+    padding:26px 0;
+  }
+  .barra a{
+    font-family:var(--dato);
+    font-size:12px;
+    color:var(--tinta);
+    text-decoration:none;
+    border-bottom:1px solid var(--linea);
+    padding-bottom:2px;
+  }
+  .barra a:hover{ border-color:var(--tinta); }
+
+  .titular{
+    padding:24px 0 40px;
+    border-top:1px solid var(--linea);
+  }
+  .titular h1{
+    font-family:var(--display);
+    font-variation-settings:'wdth' 118;
+    font-weight:800;
+    font-size:clamp(2.4rem, 7.5vw, 5rem);
+    line-height:.95;
+    letter-spacing:-.025em;
+    margin:0 0 18px;
+  }
+  .titular p{
+    margin:0;
+    max-width:54ch;
+    color:#33373E;
+  }
+
+  /* ---------- cuerpo: dos flujos y el borde del aparato ---------- */
+  .flujo{
+    display:grid;
+    grid-template-columns:1fr 120px 1fr;
+    align-items:start;
+    padding-bottom:32px;
+  }
+
+  .columna__titulo{
+    font-family:var(--display);
+    font-variation-settings:'wdth' 104;
+    font-weight:700;
+    font-size:1.5rem;
+    letter-spacing:-.01em;
+    margin:0 0 4px;
+  }
+  .columna__sub{
+    margin:0 0 26px;
+    color:var(--gris);
+    font-size:.92rem;
+  }
+
+  .columna--entradas{ text-align:right; }
+  .columna--salidas { text-align:left;  }
+
+  .items{ list-style:none; margin:0; padding:0; }
+
+  .item{
+    display:grid;
+    gap:0 16px;
+    padding:18px 0;
+    border-top:1px solid var(--linea);
+  }
+  .columna--entradas .item{ grid-template-columns:1fr auto; }
+  .columna--salidas  .item{ grid-template-columns:auto 1fr; }
+  .columna--salidas  .item .item__glifo{ order:-1; }
+
+  .item__nombre{
+    font-weight:600;
+    font-size:1.05rem;
+    margin:0;
+  }
+  .item__desc{
+    margin:2px 0 0;
+    color:#4A4F57;
+    font-size:.92rem;
+  }
+  .item__canal{
+    font-family:var(--dato);
+    font-size:11px;
+    letter-spacing:.04em;
+    display:block;
+    margin-top:6px;
+  }
+
+  .item__glifo{
+    width:26px;
+    height:26px;
+    align-self:center;
+    flex:none;
+  }
+  .item__glifo svg{ display:block; width:26px; height:26px; }
+
+  .canal-sonido  { color:var(--sonido);  }
+  .canal-fisico  { color:var(--fisico);  }
+  .canal-grafico { color:var(--grafico); }
+
+  /* el borde del aparato: todo lo que cruza esta línea cambia de dueño */
+  .borde{
+    position:relative;
+    align-self:stretch;
+    justify-self:center;
+    width:100%;
+    min-height:100%;
+  }
+  .borde__linea{
+    position:absolute;
+    left:50%;
+    top:0;
+    bottom:0;
+    width:1px;
+    background:var(--tinta);
+    transform-origin:top;
+  }
+  .borde__etiqueta{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%) rotate(-90deg);
+    transform-origin:center;
+    white-space:nowrap;
+    background:var(--hormigon);
+    padding:10px 0;
+    font-family:var(--dato);
+    font-size:12px;
+    letter-spacing:.22em;
+    color:var(--tinta);
+  }
+
+  /* ---------- leyenda ---------- */
+  .leyenda{
+    border-top:1px solid var(--linea);
+    padding:30px 0 70px;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:22px 32px;
+  }
+  .leyenda__canal{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+  }
+  .leyenda__canal p{ margin:0; font-size:.9rem; }
+  .leyenda__canal strong{ display:block; font-weight:600; }
+  .leyenda__canal span{ color:var(--gris); }
+  .leyenda__nota{
+    grid-column:1 / -1;
+    color:var(--gris);
+    font-size:.9rem;
+    max-width:70ch;
+    margin:0;
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:780px){
+    .envoltura{ padding:0 20px; }
+    .flujo{
+      grid-template-columns:1fr;
+      gap:44px;
+    }
+    .borde{ display:none; }
+    .columna--entradas{ text-align:left; }
+    .columna--entradas .item{ grid-template-columns:auto 1fr; }
+    .columna--entradas .item .item__glifo{ order:-1; }
+    .columna{
+      border-left:2px solid var(--tinta);
+      padding-left:18px;
+    }
+    .columna--salidas{
+      border-left:none;
+      border-right:2px solid var(--tinta);
+      padding-left:0;
+      padding-right:18px;
+      text-align:right;
+    }
+    .columna--salidas .item{ grid-template-columns:1fr auto; }
+    .columna--salidas .item .item__glifo{ order:0; }
+    .leyenda{ grid-template-columns:1fr; }
+  }
+
+  /* ---------- movimiento: un solo gesto al cargar ---------- */
+  @media (prefers-reduced-motion:no-preference){
+    .borde__linea{ animation:trazar .9s cubic-bezier(.2,.7,.3,1) both; }
+    @keyframes trazar{ from{ transform:scaleY(0); } to{ transform:scaleY(1); } }
+  }
+
+  a:focus-visible{ outline:2px solid var(--sonido); outline-offset:3px; }
+</style>
+</head>
+
+<body>
+
+<div class="envoltura">
+
+  <nav class="barra">
+    <a href="index.html">Volver al portafolio</a>
+    <span class="dato">Análisis de interfaz</span>
+  </nav>
+
+  <header class="titular">
+    <h1>Smartphone</h1>
+    <p>Todo lo que entra y sale de un teléfono pasa por tres canales: sonoro, físico y gráfico. Esta lámina separa lo que el aparato recibe de lo que emite, y marca por dónde viaja cada cosa.</p>
+  </header>
+
+  <section class="flujo">
+
+    <div class="columna columna--entradas">
+      <h2 class="columna__titulo">Entradas</h2>
+      <p class="columna__sub">Lo que el equipo recibe del usuario o del entorno</p>
+      <ul class="items" id="entradas"></ul>
+    </div>
+
+    <div class="borde" aria-hidden="true">
+      <div class="borde__linea"></div>
+      <div class="borde__etiqueta">Smartphone</div>
+    </div>
+
+    <div class="columna columna--salidas">
+      <h2 class="columna__titulo">Salidas</h2>
+      <p class="columna__sub">Lo que el equipo emite de vuelta al usuario</p>
+      <ul class="items" id="salidas"></ul>
+    </div>
+
+  </section>
+
+  <section class="leyenda" id="leyenda"></section>
+
+</div>
+
+<script>
+/* ------------------------------------------------------------
+   Contenido de la lámina. Editar aquí para cambiar el análisis.
+   canal: "sonido" | "fisico" | "grafico"
+   ------------------------------------------------------------ */
+
+const CANALES = {
+  sonido:  { nombre:"Sonido",  clase:"canal-sonido",  nota:"Viaja como vibración del aire: voz, música, tonos." },
+  fisico:  { nombre:"Físico",  clase:"canal-fisico",  nota:"Contacto y movimiento: dedos, presión, posición del cuerpo." },
+  grafico: { nombre:"Gráfico", clase:"canal-grafico", nota:"Luz e imagen: lo que se capta o se muestra en pantalla." }
+};
+
+const ENTRADAS = [
+  { nombre:"Cámara",         canal:"grafico", desc:"Frontal y trasera: fotos, video, escaneo." },
+  { nombre:"Micrófono",      canal:"sonido",  desc:"Voz, notas de audio, asistente por voz." },
+  { nombre:"Pantalla táctil",canal:"fisico",  desc:"Toque y multitáctil sobre el display." },
+  { nombre:"Botones",        canal:"fisico",  desc:"Encendido y volumen." },
+  { nombre:"Sensores",       canal:"fisico",  desc:"Acelerómetro y giroscopio: movimiento y orientación." }
+];
+
+const SALIDAS = [
+  { nombre:"Altavoz y auricular", canal:"sonido",  desc:"Música, voz, tonos de aviso." },
+  { nombre:"Pantalla",            canal:"grafico", desc:"Imagen, texto y video." },
+  { nombre:"Vibración",           canal:"fisico",  desc:"Háptica: confirmaciones y avisos sin sonido." }
+];
+
+/* Un glifo por canal: barras de nivel para el sonido, onda de contacto
+   para lo físico, marco para lo gráfico. */
+const GLIFOS = {
+  sonido:  '<svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">'+
+           '<path d="M4 13h1.6M8.4 8.2v9.6M12.8 4.6v16.8M17.2 9.6v6.8M21.6 12.2v1.6"/></svg>',
+  fisico:  '<svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">'+
+           '<circle cx="13" cy="13" r="2.4" fill="currentColor" stroke="none"/>'+
+           '<path d="M17.6 8.4a6.5 6.5 0 010 9.2M20.8 5.2a11 11 0 010 15.6"/></svg>',
+  grafico: '<svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">'+
+           '<rect x="4" y="5.5" width="18" height="15" rx="1.5"/>'+
+           '<path d="M4 16.5l5-4.5 4.5 3.5L18 10l4 4.2"/></svg>'
+};
+
+function pintar(lista, destino){
+  const ul = document.getElementById(destino);
+  lista.forEach(function(it){
+    const canal = CANALES[it.canal];
+
+    const li = document.createElement("li");
+    li.className = "item";
+
+    const texto = document.createElement("div");
+    const nombre = document.createElement("p");
+    nombre.className = "item__nombre";
+    nombre.textContent = it.nombre;
+    const desc = document.createElement("p");
+    desc.className = "item__desc";
+    desc.textContent = it.desc;
+    const etiqueta = document.createElement("span");
+    etiqueta.className = "item__canal " + canal.clase;
+    etiqueta.textContent = canal.nombre;
+    texto.append(nombre, desc, etiqueta);
+
+    const glifo = document.createElement("div");
+    glifo.className = "item__glifo " + canal.clase;
+    glifo.innerHTML = GLIFOS[it.canal];
+
+    li.append(texto, glifo);
+    ul.appendChild(li);
+  });
+}
+
+pintar(ENTRADAS, "entradas");
+pintar(SALIDAS,  "salidas");
+
+/* --- leyenda --- */
+const leyenda = document.getElementById("leyenda");
+
+Object.keys(CANALES).forEach(function(clave){
+  const c = CANALES[clave];
+
+  const bloque = document.createElement("div");
+  bloque.className = "leyenda__canal";
+
+  const glifo = document.createElement("div");
+  glifo.className = "item__glifo " + c.clase;
+  glifo.innerHTML = GLIFOS[clave];
+
+  const p = document.createElement("p");
+  const fuerte = document.createElement("strong");
+  fuerte.textContent = c.nombre;
+  const span = document.createElement("span");
+  span.textContent = c.nota;
+  p.append(fuerte, span);
+
+  bloque.append(glifo, p);
+  leyenda.appendChild(bloque);
+});
+
+const nota = document.createElement("p");
+nota.className = "leyenda__nota";
+nota.textContent = "La línea del centro es el borde del aparato. A la izquierda, el usuario y el entorno informan al equipo. A la derecha, el equipo responde.";
+leyenda.appendChild(nota);
+</script>
+
+</body>
+</html>
